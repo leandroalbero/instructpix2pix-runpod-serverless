@@ -1,0 +1,38 @@
+name: Validate pull request
+
+on: [ pull_request, workflow_dispatch ]
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Create envfile
+        run: |
+          touch .env
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.2
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          sudo apt update
+          pip install pybind11
+          sudo pip install -r requirements/development/requirements.txt
+
+      - name: set environment variables
+        run: |
+          echo "FLASK_ENV=development" >> $GITHUB_ENV
+
+      - name: run linter
+        run: |
+          make lint-ci
+
+      - name: run tests
+        run: |
+          make test-local
